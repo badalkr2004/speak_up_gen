@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Logo } from "./icons";
+import Image from "next/image";
+import logoInk from "../../public/brand/logo-ink.png";
 import { WHATSAPP_URL } from "../lib/content";
 
 const LINKS = [
@@ -45,11 +46,13 @@ export function Nav() {
       } ${solid ? "bg-paper/92 shadow-[0_1px_0_rgb(23_23_19/0.08)]" : "bg-transparent"}`}
     >
       <div className="container-x flex h-16 items-center justify-between gap-6 sm:h-[4.5rem]">
-        <a href="#top" className="group flex items-center gap-2.5" aria-label="Speak Up Gen — back to top">
-          <Logo className="h-8 w-8 transition-transform duration-500 ease-(--ease-spring) group-hover:-rotate-12" />
-          <span className="text-[0.95rem] font-extrabold tracking-tight wide">
-            speak up <span className="text-leaf">gen</span>
-          </span>
+        <a href="#top" className="group flex items-center" aria-label="Speak Up Gen — back to top">
+          <Image
+            src={logoInk}
+            alt="Speak Up Gen"
+            preload
+            className="h-12 w-auto transition-transform duration-500 ease-(--ease-spring) group-hover:-rotate-3 group-hover:scale-105 sm:h-14"
+          />
         </a>
 
         <nav aria-label="Main" className="hidden items-center gap-8 md:flex">

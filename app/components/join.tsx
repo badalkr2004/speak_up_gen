@@ -1,4 +1,6 @@
-import { Arrow, Logo } from "./icons";
+import Image from "next/image";
+import { Arrow } from "./icons";
+import logoBadge from "../../public/brand/logo-badge.png";
 import { INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "../lib/content";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
@@ -57,7 +59,7 @@ export function Join() {
                 <i />
               </div>
               <div className="bubble flex max-w-[85%] items-start gap-2.5 rounded-2xl rounded-bl-md bg-paper px-4 py-2.5" style={{ "--at": "2.4s" } as Vars}>
-                <Logo className="mt-0.5 h-5 w-5 shrink-0" />
+                <Image src={logoBadge} alt="" sizes="1.75rem" className="h-7 w-7 shrink-0 rounded-full" />
                 <span>yesss — welcome in 💚 say hi, tell us what you care about. next drive details are pinned!</span>
               </div>
             </div>

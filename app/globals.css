@@ -8,7 +8,7 @@
   --color-leaf: #1e6a44;
   --color-leaf-deep: #0e3624;
   --color-lime: #d6f45c;
-  --color-coral: #ff6a3d;
+  --color-coral: #d8432a;
   --color-sky: #b9def0;
 
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -197,15 +197,6 @@ body::after {
 @keyframes blink {
   50% {
     opacity: 0.15;
-  }
-}
-
-.spin-slow {
-  animation: spin 22s linear infinite;
-}
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
   }
 }
 
@@ -505,7 +496,7 @@ body::after {
 .notebook {
   background-color: #fbf8f1;
   background-image:
-    linear-gradient(to right, transparent 3.25rem, rgb(255 106 61 / 0.45) 3.25rem, rgb(255 106 61 / 0.45) calc(3.25rem + 1.5px), transparent calc(3.25rem + 1.5px)),
+    linear-gradient(to right, transparent 3.25rem, rgb(216 67 42 / 0.45) 3.25rem, rgb(216 67 42 / 0.45) calc(3.25rem + 1.5px), transparent calc(3.25rem + 1.5px)),
     repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--rule) - 1px), rgb(30 106 68 / 0.16) calc(var(--rule) - 1px), rgb(30 106 68 / 0.16) var(--rule));
   --rule: 2.25rem;
 }

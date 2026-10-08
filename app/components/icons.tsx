@@ -1,19 +1,5 @@
 import type { PillarIcon } from "../lib/content";
 
-export function Logo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
-      <path
-        d="M20 3.5c9.1 0 16.5 6.4 16.5 14.4S29.1 32.3 20 32.3c-1.7 0-3.3-.2-4.9-.6L6.6 36l1.8-7.2C5.3 26.2 3.5 22.3 3.5 17.9 3.5 9.9 10.9 3.5 20 3.5z"
-        fill="#1e6a44"
-      />
-      <path d="M20 26.5v-9" stroke="#d6f45c" strokeWidth="2.2" strokeLinecap="round" />
-      <path d="M20 19.5c-.6-4-3.7-6.4-7.6-6.1.2 3.9 3.4 6.5 7.6 6.1z" fill="#d6f45c" />
-      <path d="M20 17c.7-3.9 3.9-6.3 7.8-6-.2 3.9-3.5 6.5-7.8 6z" fill="#d6f45c" />
-    </svg>
-  );
-}
-
 export function Arrow({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 20 20" className={className} aria-hidden="true" fill="none">

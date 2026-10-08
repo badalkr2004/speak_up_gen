@@ -1,4 +1,5 @@
-import { Logo } from "./icons";
+import Image from "next/image";
+import logoBadge from "../../public/brand/logo-badge.png";
 import { HASHTAGS, INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "../lib/content";
 
 const MATTERS = ["voice", "ideas", "action"];
@@ -21,13 +22,13 @@ export function Footer() {
 
         <div className="mt-16 grid gap-10 border-t border-paper/15 pt-10 sm:mt-24 md:grid-cols-3">
           <div>
-            <a href="#top" className="flex items-center gap-2.5">
-              <Logo className="h-9 w-9" />
-              <span className="text-lg font-extrabold wide">
-                speak up <span className="text-lime">gen</span>
-              </span>
+            <a href="#top" className="inline-block" aria-label="Speak Up Gen — back to top">
+              <Image src={logoBadge} alt="Speak Up Gen" sizes="7rem" className="wiggle-hover h-28 w-28 -rotate-6 rounded-full" />
             </a>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-paper/60">
+            <p className="mt-5 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-lime wide">
+              Aware. Think. Speak. Change.
+            </p>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-paper/60">
               A youth-driven initiative for social &amp; environmental change. Run by students, open to every young
               person who wants to show up.
             </p>

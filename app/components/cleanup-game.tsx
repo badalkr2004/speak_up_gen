@@ -25,7 +25,7 @@ function Litter({ kind }: { kind: Kind }) {
     case "bottle":
       return (
         <svg viewBox="0 0 24 50" className="h-12 w-6">
-          <rect x="8" y="2" width="8" height="6" rx="1.5" fill="#ff6a3d" {...stroke} />
+          <rect x="8" y="2" width="8" height="6" rx="1.5" fill="#d8432a" {...stroke} />
           <path d="M8 8h8l3 7v29a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V15l3-7z" fill="#b9def0" {...stroke} />
           <rect x="5" y="22" width="14" height="9" fill="#d6f45c" {...stroke} />
         </svg>
@@ -33,7 +33,7 @@ function Litter({ kind }: { kind: Kind }) {
     case "can":
       return (
         <svg viewBox="0 0 28 40" className="h-10 w-7">
-          <rect x="3" y="4" width="22" height="33" rx="4" fill="#ff6a3d" {...stroke} />
+          <rect x="3" y="4" width="22" height="33" rx="4" fill="#d8432a" {...stroke} />
           <ellipse cx="14" cy="6" rx="10" ry="2.5" fill="#e8dfcd" {...stroke} />
           <path d="M8 17h12M8 23h8" {...stroke} stroke="#f3ede2" />
         </svg>
@@ -42,7 +42,7 @@ function Litter({ kind }: { kind: Kind }) {
       return (
         <svg viewBox="0 0 40 44" className="h-11 w-10">
           <path d="M5 5l5 2 5-2 5 2 5-2 5 2 5-2-2 34-5-2-5 2-5-2-5 2-5-2-5 2z" fill="#d6f45c" {...stroke} />
-          <circle cx="20" cy="21" r="6" fill="#ff6a3d" {...stroke} />
+          <circle cx="20" cy="21" r="6" fill="#d8432a" {...stroke} />
         </svg>
       );
     case "cup":
@@ -92,7 +92,7 @@ function Flower({ hue }: { hue: string }) {
   );
 }
 
-const HUES = ["#ff6a3d", "#d6f45c", "#fbf8f1", "#b9def0"];
+const HUES = ["#d8432a", "#d6f45c", "#fbf8f1", "#b9def0"];
 
 export function CleanupGame() {
   const [picked, setPicked] = useState<ReadonlySet<number>>(new Set());

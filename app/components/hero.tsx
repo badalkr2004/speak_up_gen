@@ -1,4 +1,6 @@
+import Image from "next/image";
 import { Arrow } from "./icons";
+import logoBadge from "../../public/brand/logo-badge.png";
 import { HASHTAGS, WHATSAPP_URL } from "../lib/content";
 
 const BARS = Array.from({ length: 56 }, (_, i) => {
@@ -22,7 +24,7 @@ export function Hero() {
           <span className="text-ink-soft">a youth-run initiative</span>
         </p>
 
-        <h1 className="display mt-6 text-[clamp(2.9rem,15vw,13.5rem)] sm:mt-8">
+        <h1 className="display mt-6 text-[clamp(2.9rem,15vw,12rem)] sm:mt-8">
           <span className="line-mask">
             <span style={{ "--i": 0 } as Vars}>
               Your{" "}
@@ -52,7 +54,7 @@ export function Hero() {
                     d="M4 14C60 6 140 4 296 9M30 17c70-5 150-6 240-3"
                     pathLength={1}
                     fill="none"
-                    stroke="#ff6a3d"
+                    stroke="#d8432a"
                     strokeWidth="5"
                     strokeLinecap="round"
                   />
@@ -62,25 +64,19 @@ export function Hero() {
           </span>
         </h1>
 
-        <svg
-          viewBox="0 0 120 120"
-          className="fade-up absolute right-[clamp(1.25rem,4vw,3rem)] top-28 hidden h-40 w-40 xl:block"
+        <div
+          className="fade-up absolute right-[clamp(1.25rem,4vw,3rem)] top-16 hidden xl:block"
           style={{ "--i": 5 } as Vars}
           aria-hidden="true"
         >
-          <g className="spin-slow origin-center [transform-box:fill-box]">
-            <defs>
-              <path id="ring" d="M60 60m-44 0a44 44 0 1 1 88 0a44 44 0 1 1-88 0" />
-            </defs>
-            <circle cx="60" cy="60" r="58" fill="#1e6a44" />
-            <text fill="#f3ede2" fontSize="10.5" fontWeight="700">
-              <textPath href="#ring" textLength="272" lengthAdjust="spacing">
-                STUDENT-RUN • YOUTH-LED • FOR CHANGE •
-              </textPath>
-            </text>
-          </g>
-          <path d="M60 44v30M60 56c-1-6-6-9-12-8.5.4 6 5.3 9.6 12 8.5zM60 52c1-6 6-9.5 12-9-.3 6-5.4 10-12 9z" fill="#d6f45c" stroke="#d6f45c" strokeWidth="2" strokeLinecap="round" />
-        </svg>
+          <Image
+            src={logoBadge}
+            alt=""
+            sizes="11rem"
+            loading="eager"
+            className="wiggle-hover h-44 w-44 -rotate-[8deg] rounded-full shadow-[0_18px_40px_-18px_rgb(23_23_19/0.45)]"
+          />
+        </div>
 
         <div className="mt-10 grid gap-8 sm:mt-14 md:grid-cols-12 md:items-end">
           <p className="fade-up max-w-xl text-lg leading-relaxed text-ink-soft md:col-span-6 sm:text-xl" style={{ "--i": 6 } as Vars}>
