@@ -3,6 +3,53 @@ export const WHATSAPP_URL =
 export const INSTAGRAM_URL = "https://www.instagram.com/speak_up_gen/";
 export const INSTAGRAM_HANDLE = "@speak_up_gen";
 
+export const TAGLINE = "Speak today. Shape the way.";
+
+export type TeamMember = {
+  name: string;
+  role: string;
+  image: string;
+  phone?: string;
+};
+
+/** Ordered by role seniority — founder first, technical head last. */
+export const TEAM: TeamMember[] = [
+  {
+    name: "Satyam Pandey",
+    role: "Founder & Director",
+    image: "/team/satyam-pandey.jpg",
+    phone: "+91 62004 53772",
+  },
+  {
+    name: "Aditya Kini",
+    role: "President",
+    image: "/team/aditya-kini.jpg",
+    phone: "+91 93076 94155",
+  },
+  {
+    name: "Dhruvi Jain",
+    role: "Vice President",
+    image: "/team/dhruvi-jain.jpg",
+  },
+  {
+    name: "Kartavya Rathad",
+    role: "Vice President",
+    image: "/team/kartavya-rathad.jpg",
+    phone: "+91 92840 52173",
+  },
+  {
+    name: "Jayankit Thakur",
+    role: "Personal Advisor",
+    image: "/team/jayankit-thakur.jpg",
+  },
+  {
+    name: "Badal Kumar",
+    role: "Technical Head",
+    image: "/team/badal-kumar.jpg",
+    phone: "+91 70045 59534",
+  },
+];
+
 export const HASHTAGS = [
   "#SpeakUpGen",
   "#YouthForChange",

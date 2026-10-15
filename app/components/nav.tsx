@@ -2,17 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import logoInk from "../../public/brand/logo-ink.png";
 import { WHATSAPP_URL } from "../lib/content";
 
-const LINKS = [
-  { href: "#story", label: "Story" },
-  { href: "#what-we-do", label: "What we do" },
-  { href: "#try", label: "Try a drive" },
-  { href: "#join", label: "Join" },
+const HOME_LINKS = [
+  { href: "/#story", label: "Story" },
+  { href: "/#what-we-do", label: "What we do" },
+  { href: "/#try", label: "Try a drive" },
+  { href: "/team", label: "Team" },
+  { href: "/#join", label: "Join" },
 ];
 
 export function Nav() {
+  const pathname = usePathname();
+  const onHome = pathname === "/";
   const [hidden, setHidden] = useState(false);
   const [solid, setSolid] = useState(false);
 
@@ -43,25 +48,38 @@ export function Nav() {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,box-shadow] duration-500 ease-(--ease-soft) ${
         hidden ? "-translate-y-full" : "translate-y-0"
-      } ${solid ? "bg-paper/92 shadow-[0_1px_0_rgb(23_23_19/0.08)]" : "bg-transparent"}`}
+      } ${solid || !onHome ? "bg-paper/92 shadow-[0_1px_0_rgb(23_23_19/0.08)]" : "bg-transparent"}`}
     >
       <div className="container-x flex h-16 items-center justify-between gap-6 sm:h-[4.5rem]">
-        <a href="#top" className="group flex items-center" aria-label="Speak Up Gen — back to top">
+        <Link href="/" className="group flex items-center" aria-label="Speak Up Gen — home">
           <Image
             src={logoInk}
             alt="Speak Up Gen"
             preload
             className="h-12 w-auto transition-transform duration-500 ease-(--ease-spring) group-hover:-rotate-3 group-hover:scale-105 sm:h-14"
           />
-        </a>
+        </Link>
 
-        <nav aria-label="Main" className="hidden items-center gap-8 md:flex">
-          {LINKS.map((l) => (
-            <a key={l.href} href={l.href} className="group relative text-sm font-medium">
-              {l.label}
-              <span className="absolute -bottom-1 left-0 h-[1.5px] w-full origin-right scale-x-0 bg-current transition-transform duration-400 ease-(--ease-soft) group-hover:origin-left group-hover:scale-x-100" />
-            </a>
-          ))}
+        <nav aria-label="Main" className="hidden items-center gap-7 lg:flex">
+          {HOME_LINKS.map((l) => {
+            const active = l.href === "/team" && pathname === "/team";
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={`group relative text-sm font-medium ${active ? "text-leaf" : ""}`}
+              >
+                {l.label}
+                <span
+                  className={`absolute -bottom-1 left-0 h-[1.5px] w-full bg-current transition-transform duration-400 ease-(--ease-soft) ${
+                    active
+                      ? "origin-left scale-x-100"
+                      : "origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"
+                  }`}
+                />
+              </Link>
+            );
+          })}
         </nav>
 
         <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn btn-ink !px-4 !py-2.5 text-sm">

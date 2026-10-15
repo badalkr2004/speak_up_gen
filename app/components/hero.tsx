@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Arrow } from "./icons";
 import logoBadge from "../../public/brand/logo-badge.png";
-import { HASHTAGS, WHATSAPP_URL } from "../lib/content";
+import { HASHTAGS, TAGLINE, WHATSAPP_URL } from "../lib/content";
 
 const BARS = Array.from({ length: 56 }, (_, i) => {
   const h = 22 + Math.round(78 * Math.abs(Math.sin(i * 0.47) * Math.cos(i * 0.11 + 0.6)));
@@ -24,7 +24,14 @@ export function Hero() {
           <span className="text-ink-soft">a youth-run initiative</span>
         </p>
 
-        <h1 className="display mt-6 text-[clamp(2.9rem,15vw,12rem)] sm:mt-8">
+        <p
+          className="fade-up mt-5 font-hand text-[clamp(1.6rem,4vw,2.4rem)] leading-none text-coral"
+          style={{ "--i": 1 } as Vars}
+        >
+          {TAGLINE}
+        </p>
+
+        <h1 className="display mt-5 text-[clamp(2.9rem,15vw,12rem)] sm:mt-7">
           <span className="line-mask">
             <span style={{ "--i": 0 } as Vars}>
               Your{" "}

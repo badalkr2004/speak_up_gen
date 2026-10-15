@@ -1,6 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import logoBadge from "../../public/brand/logo-badge.png";
-import { HASHTAGS, INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "../lib/content";
+import { HASHTAGS, INSTAGRAM_HANDLE, INSTAGRAM_URL, TAGLINE, WHATSAPP_URL } from "../lib/content";
 
 const MATTERS = ["voice", "ideas", "action"];
 
@@ -22,10 +23,11 @@ export function Footer() {
 
         <div className="mt-16 grid gap-10 border-t border-paper/15 pt-10 sm:mt-24 md:grid-cols-3">
           <div>
-            <a href="#top" className="inline-block" aria-label="Speak Up Gen — back to top">
+            <Link href="/" className="inline-block" aria-label="Speak Up Gen — home">
               <Image src={logoBadge} alt="Speak Up Gen" sizes="7rem" className="wiggle-hover h-28 w-28 -rotate-6 rounded-full" />
-            </a>
-            <p className="mt-5 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-lime wide">
+            </Link>
+            <p className="mt-5 font-hand text-2xl text-lime">{TAGLINE}</p>
+            <p className="mt-2 text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-paper/50 wide">
               Aware. Think. Speak. Change.
             </p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-paper/60">
@@ -37,6 +39,11 @@ export function Footer() {
           <div>
             <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-paper/50 wide">Find us</p>
             <ul className="mt-4 space-y-2.5">
+              <li>
+                <Link href="/team" className="link-u pb-0.5">
+                  Our team
+                </Link>
+              </li>
               <li>
                 <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="link-u pb-0.5">
                   WhatsApp group
@@ -65,10 +72,10 @@ export function Footer() {
 
       <div className="container-x mt-16 flex flex-col gap-3 pb-8 text-xs text-paper/45 sm:flex-row sm:items-center sm:justify-between">
         <p>Made by Gen Z, for everyone. 🌍</p>
-        <a href="#top" className="group inline-flex items-center gap-2 self-start hover:text-paper sm:self-auto">
+        <Link href="/" className="group inline-flex items-center gap-2 self-start hover:text-paper sm:self-auto">
           Back to the top
           <span className="transition-transform duration-500 ease-(--ease-spring) group-hover:-translate-y-1">↑</span>
-        </a>
+        </Link>
       </div>
 
       <p
