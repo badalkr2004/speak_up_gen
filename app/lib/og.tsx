@@ -7,10 +7,10 @@ export const ogSize = { width: 1200, height: 630 };
 export const ogContentType = "image/png";
 
 async function loadLogo() {
-  // Opaque RGB PNG — Satori is unreliable with large transparent RGBA assets
-  // and with base64 data URLs for local files.
+  // Opaque RGB PNG — Satori is unreliable with large transparent RGBA assets.
+  // Use a data URL string so TypeScript and ImageResponse both accept `src`.
   const data = await readFile(join(process.cwd(), "public/brand/logo-og.png"));
-  return Uint8Array.from(data).buffer;
+  return `data:image/png;base64,${data.toString("base64")}`;
 }
 
 type OgProps = {
@@ -167,7 +167,6 @@ export async function createOgImage({
               flexShrink: 0,
             }}
           >
-            {/* @ts-expect-error Satori accepts ArrayBuffer for img src */}
             <img
               src={logo}
               width={360}
