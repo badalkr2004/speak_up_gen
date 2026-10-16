@@ -41,6 +41,7 @@ export const TEAM: TeamMember[] = [
     name: "Jayankit Thakur",
     role: "Personal Advisor",
     image: "/team/jayankit-thakur.jpg",
+    phone: "+91 98338 22606",
   },
   {
     name: "Badal Kumar",
@@ -61,7 +62,13 @@ export const HASHTAGS = [
   "#CommunityAction",
 ];
 
-export type PillarIcon = "megaphone" | "leaf" | "mind" | "hands" | "brush" | "bulb";
+export type PillarIcon =
+  | "megaphone"
+  | "leaf"
+  | "mind"
+  | "hands"
+  | "brush"
+  | "bulb";
 
 export const PILLARS: {
   title: string;
