@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import logoInk from "../../public/brand/logo-ink.png";
-import { WHATSAPP_URL } from "../lib/content";
 
 const HOME_LINKS = [
   { href: "/#story", label: "Story" },
@@ -82,10 +81,18 @@ export function Nav() {
           })}
         </nav>
 
-        <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" className="btn btn-ink !px-4 !py-2.5 text-sm">
-          <span className="h-2 w-2 rounded-full bg-lime" />
-          Join us
-        </a>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Link
+            href="/sign-in"
+            className="hidden text-sm font-medium text-ink-soft underline-offset-2 hover:text-ink hover:underline sm:inline"
+          >
+            Sign in
+          </Link>
+          <Link href="/sign-up" className="btn btn-ink !px-4 !py-2.5 text-sm">
+            <span className="h-2 w-2 rounded-full bg-lime" />
+            Join us
+          </Link>
+        </div>
       </div>
       <div className="scroll-progress h-[2px] bg-leaf" />
     </header>
