@@ -48,4 +48,18 @@ export const assignLeadSchema = z.object({
   ]),
 });
 
+export const assignRoleSchema = z.object({
+  userId: z.string().min(1),
+  targetOrgUnitId: z.string().min(1),
+  roleKey: z.enum([
+    "national_admin",
+    "state_lead",
+    "city_lead",
+    "unit_lead",
+    "member",
+    "volunteer",
+  ]),
+  sourceMembershipId: z.string().min(1).optional(),
+});
+
 export type ApplyInput = z.infer<typeof applySchema>;

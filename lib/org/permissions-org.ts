@@ -1,91 +1,53 @@
-import { eq } from "drizzle-orm";
-import {
-  getActiveMemberships,
-  type RoleKey,
-} from "@/lib/auth/permissions";
-import { getDb } from "@/lib/db";
-import { orgUnit } from "@/lib/db/schema";
+/**
+ * Compatibility shims — prefer lib/org/access.ts for new code.
+ */
+export {
+  can as canCapability,
+  assertCan,
+  isNationalAdmin,
+  getAssignableRoles,
+  getScopedOrgRoots,
+  hasAnyLeadRole,
+  requiredLevelForRole,
+  type Capability,
+  type OrgLevel,
+} from "@/lib/org/access";
 
-export type OrgLevel = "national" | "state" | "city" | "unit";
+import { can } from "@/lib/org/access";
 
-async function getUnit(id: string) {
-  const db = getDb();
-  const [row] = await db
-    .select()
-    .from(orgUnit)
-    .where(eq(orgUnit.id, id))
-    .limit(1);
-  return row ?? null;
-}
-
-export async function isNationalAdmin(userId: string) {
-  const memberships = await getActiveMemberships(userId);
-  return memberships.some((m) => m.roleKey === "national_admin");
-}
-
-/** Who may create a child under parentUnitId. */
-export async function canManageChildren(
-  userId: string,
-  parentUnitId: string,
-): Promise<boolean> {
-  if (await isNationalAdmin(userId)) return true;
-
-  const parent = await getUnit(parentUnitId);
+/** @deprecated use can(userId, "create_unit"|"create_city"|"create_state", parentId) */
+export async function canManageChildren(userId: string, parentUnitId: string) {
+  const { getOrgNode } = await import("@/lib/org/access");
+  const parent = await getOrgNode(parentUnitId);
   if (!parent) return false;
-
-  const memberships = await getActiveMemberships(userId);
-
   if (parent.level === "national") {
-    return memberships.some((m) => m.roleKey === "national_admin");
+    return can(userId, "create_state", parentUnitId);
   }
   if (parent.level === "state") {
-    return memberships.some(
-      (m) =>
-        m.orgUnitId === parent.id &&
-        (m.roleKey === "state_lead" || m.roleKey === "national_admin"),
-    );
+    return can(userId, "create_city", parentUnitId);
   }
   if (parent.level === "city") {
-    return memberships.some(
-      (m) =>
-        (m.orgUnitId === parent.id && m.roleKey === "city_lead") ||
-        (m.orgUnitId === parent.parentId && m.roleKey === "state_lead"),
-    );
+    return can(userId, "create_unit", parentUnitId);
   }
   return false;
 }
 
+/** @deprecated use getAssignableRoles + assignRoleAction */
 export async function canAssignLeadOnUnit(userId: string, unitId: string) {
-  if (await isNationalAdmin(userId)) return true;
-  const unit = await getUnit(unitId);
-  if (!unit) return false;
-  const memberships = await getActiveMemberships(userId);
-
-  if (unit.level === "unit" && unit.parentId) {
-    return memberships.some(
-      (m) => m.orgUnitId === unit.parentId && m.roleKey === "city_lead",
-    );
-  }
-  if (unit.level === "city" && unit.parentId) {
-    return memberships.some(
-      (m) => m.orgUnitId === unit.parentId && m.roleKey === "state_lead",
-    );
-  }
-  if (unit.level === "state") {
-    return memberships.some((m) => m.roleKey === "national_admin");
-  }
-  return false;
+  return can(userId, "assign_roles", unitId);
 }
 
-export function defaultLeadRoleForLevel(level: OrgLevel): RoleKey {
+export function defaultLeadRoleForLevel(
+  level: "national" | "state" | "city" | "unit",
+) {
   switch (level) {
     case "national":
-      return "national_admin";
+      return "national_admin" as const;
     case "state":
-      return "state_lead";
+      return "state_lead" as const;
     case "city":
-      return "city_lead";
+      return "city_lead" as const;
     case "unit":
-      return "unit_lead";
+      return "unit_lead" as const;
   }
 }

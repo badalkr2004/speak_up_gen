@@ -2,27 +2,45 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { assignLeadAction } from "@/lib/org/actions";
+import { assignRoleAction } from "@/lib/org/actions";
 
-const ROLES = [
-  { value: "member", label: "Member" },
-  { value: "volunteer", label: "Volunteer" },
-  { value: "unit_lead", label: "Unit lead" },
-  { value: "city_lead", label: "City lead" },
-  { value: "state_lead", label: "State lead" },
-  { value: "national_admin", label: "National admin" },
-] as const;
+const ROLE_LABELS: Record<string, string> = {
+  member: "Member",
+  volunteer: "Volunteer",
+  unit_lead: "Unit lead",
+  city_lead: "City lead",
+  state_lead: "State lead",
+  national_admin: "National admin",
+};
 
 export function AssignRoleForm({
-  membershipId,
+  userId,
+  targetOrgUnitId,
+  sourceMembershipId,
   currentRole,
+  allowedRoles,
 }: {
-  membershipId: string;
+  userId: string;
+  targetOrgUnitId: string;
+  sourceMembershipId?: string;
   currentRole: string;
+  allowedRoles: string[];
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  if (allowedRoles.length === 0) {
+    return (
+      <span className="text-xs uppercase tracking-wide text-ink-soft">
+        {ROLE_LABELS[currentRole] ?? currentRole}
+      </span>
+    );
+  }
+
+  const options = Array.from(
+    new Set([currentRole, ...allowedRoles].filter(Boolean)),
+  );
 
   return (
     <form
@@ -32,9 +50,11 @@ export function AssignRoleForm({
         setError(null);
         const form = new FormData(e.currentTarget);
         startTransition(async () => {
-          const result = await assignLeadAction({
-            membershipId,
+          const result = await assignRoleAction({
+            userId,
+            targetOrgUnitId,
             roleKey: String(form.get("roleKey") || ""),
+            sourceMembershipId,
           });
           if (!result.ok) {
             setError(result.error);
@@ -46,12 +66,14 @@ export function AssignRoleForm({
     >
       <select
         name="roleKey"
-        defaultValue={currentRole}
+        defaultValue={
+          allowedRoles.includes(currentRole) ? currentRole : allowedRoles[0]
+        }
         className="rounded-lg border-2 border-ink bg-paper px-2 py-1 text-xs"
       >
-        {ROLES.map((r) => (
-          <option key={r.value} value={r.value}>
-            {r.label}
+        {options.map((r) => (
+          <option key={r} value={r} disabled={!allowedRoles.includes(r) && r !== currentRole}>
+            {ROLE_LABELS[r] ?? r}
           </option>
         ))}
       </select>

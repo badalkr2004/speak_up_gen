@@ -69,59 +69,22 @@ export async function getActiveMemberships(userId: string) {
 
 /**
  * Server-side check: may this user approve applications for targetOrgUnitId?
- * Never trust client-sent role flags — always re-query.
+ * Delegates to the fixed capability matrix in lib/org/access.
  */
 export async function canApproveApplication(
   userId: string,
   targetOrgUnitId: string,
 ): Promise<boolean> {
-  const db = getDb();
-  const [target] = await db
-    .select({
-      id: orgUnit.id,
-      level: orgUnit.level,
-      parentId: orgUnit.parentId,
-    })
-    .from(orgUnit)
-    .where(eq(orgUnit.id, targetOrgUnitId))
-    .limit(1);
-
-  if (!target) return false;
-
-  const memberships = await getActiveMemberships(userId);
-  if (memberships.some((m) => m.roleKey === "national_admin")) {
-    return true;
-  }
-
-  const exactLead = memberships.find(
-    (m) =>
-      m.orgUnitId === target.id &&
-      m.roleKey === "unit_lead" &&
-      target.level === "unit",
-  );
-  if (exactLead) return true;
-
-  if (target.level === "unit" && target.parentId) {
-    const cityLead = memberships.find(
-      (m) =>
-        m.orgUnitId === target.parentId &&
-        m.roleKey === "city_lead" &&
-        m.unitLevel === "city",
-    );
-    if (cityLead) return true;
-  }
-
-  return false;
+  const { can } = await import("@/lib/org/access");
+  return can(userId, "approve_application", targetOrgUnitId);
 }
 
 export async function assertCanApproveApplication(
   userId: string,
   targetOrgUnitId: string,
 ) {
-  const allowed = await canApproveApplication(userId, targetOrgUnitId);
-  if (!allowed) {
-    throw new Error("Not allowed to approve applications for this unit.");
-  }
+  const { assertCan } = await import("@/lib/org/access");
+  await assertCan(userId, "approve_application", targetOrgUnitId);
 }
 
 export async function listLeadMemberships(userId: string) {

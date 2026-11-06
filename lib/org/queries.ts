@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import {
   application,
@@ -10,8 +10,12 @@ import {
   unitKind,
   user,
 } from "@/lib/db/schema";
-import { getActiveMemberships } from "@/lib/auth/permissions";
-import { canApproveApplication } from "@/lib/auth/permissions";
+import {
+  getActiveLeads,
+  getScopedOrgRoots,
+  hasAnyLeadRole,
+  listUnitIdsInScope,
+} from "@/lib/org/access";
 
 export async function listUnitKinds() {
   const db = getDb();
@@ -89,9 +93,23 @@ export async function getOrgUnitById(id: string) {
   return row ?? null;
 }
 
-/** Active leaf units applicants can join. */
-export async function listJoinableUnits() {
+/** Active leaf units in a city — never return national dump. */
+export async function listJoinableUnits(filters: {
+  cityId: string;
+  q?: string;
+}) {
   const db = getDb();
+  const conditions = [
+    eq(orgUnit.level, "unit"),
+    eq(orgUnit.status, "active"),
+    eq(orgUnit.cityId, filters.cityId),
+  ];
+
+  const q = filters.q?.trim();
+  if (q) {
+    conditions.push(ilike(orgUnit.name, `%${q}%`));
+  }
+
   return db
     .select({
       id: orgUnit.id,
@@ -107,8 +125,48 @@ export async function listJoinableUnits() {
     .leftJoin(unitKind, eq(orgUnit.unitKindId, unitKind.id))
     .leftJoin(geoCity, eq(orgUnit.cityId, geoCity.id))
     .leftJoin(geoState, eq(orgUnit.stateCode, geoState.code))
-    .where(and(eq(orgUnit.level, "unit"), eq(orgUnit.status, "active")))
-    .orderBy(asc(geoState.name), asc(geoCity.name), asc(orgUnit.name));
+    .where(and(...conditions))
+    .orderBy(asc(orgUnit.name))
+    .limit(50);
+}
+
+/** Cities that already have an active city chapter (for apply pickers). */
+export async function listCitiesWithChapters(stateCode: string) {
+  const db = getDb();
+  return db
+    .select({
+      cityId: geoCity.id,
+      cityName: geoCity.name,
+      slug: geoCity.slug,
+      chapterId: orgUnit.id,
+      chapterName: orgUnit.name,
+    })
+    .from(orgUnit)
+    .innerJoin(geoCity, eq(orgUnit.cityId, geoCity.id))
+    .where(
+      and(
+        eq(orgUnit.level, "city"),
+        eq(orgUnit.status, "active"),
+        eq(orgUnit.stateCode, stateCode),
+      ),
+    )
+    .orderBy(asc(geoCity.name));
+}
+
+/** States that have an active state chapter. */
+export async function listStatesWithChapters() {
+  const db = getDb();
+  return db
+    .select({
+      stateCode: geoState.code,
+      stateName: geoState.name,
+      chapterId: orgUnit.id,
+      chapterName: orgUnit.name,
+    })
+    .from(orgUnit)
+    .innerJoin(geoState, eq(orgUnit.stateCode, geoState.code))
+    .where(and(eq(orgUnit.level, "state"), eq(orgUnit.status, "active")))
+    .orderBy(asc(geoState.name));
 }
 
 export async function getUserMemberships(userId: string) {
@@ -151,20 +209,10 @@ export async function getUserApplications(userId: string) {
 }
 
 export async function listPendingApplicationsForLead(userId: string) {
-  const db = getDb();
-  const units = await db
-    .select({ id: orgUnit.id })
-    .from(orgUnit)
-    .where(eq(orgUnit.level, "unit"));
-
-  const allowedIds: string[] = [];
-  for (const u of units) {
-    if (await canApproveApplication(userId, u.id)) {
-      allowedIds.push(u.id);
-    }
-  }
+  const allowedIds = await listUnitIdsInScope(userId);
   if (allowedIds.length === 0) return [];
 
+  const db = getDb();
   return db
     .select({
       id: application.id,
@@ -189,6 +237,82 @@ export async function listPendingApplicationsForLead(userId: string) {
       ),
     )
     .orderBy(asc(application.createdAt));
+}
+
+/** People directory within actor scope. */
+export async function listPeopleInScope(
+  userId: string,
+  opts: { q?: string; limit?: number } = {},
+) {
+  const unitIds = await listUnitIdsInScope(userId);
+  const { roots, isNationalAdmin: nat } = await getScopedOrgRoots(userId);
+  const db = getDb();
+
+  // Include chapter-level memberships (city/state/national leads) in scope
+  const chapterIds: string[] = [];
+  if (nat) {
+    const allChapters = await db
+      .select({ id: orgUnit.id })
+      .from(orgUnit)
+      .where(
+        and(
+          inArray(orgUnit.level, ["national", "state", "city"]),
+          eq(orgUnit.status, "active"),
+        ),
+      );
+    chapterIds.push(...allChapters.map((c) => c.id));
+  } else {
+    for (const root of roots) {
+      chapterIds.push(root.id);
+      if (root.level === "state") {
+        const cities = await db
+          .select({ id: orgUnit.id })
+          .from(orgUnit)
+          .where(
+            and(eq(orgUnit.parentId, root.id), eq(orgUnit.level, "city")),
+          );
+        chapterIds.push(...cities.map((c) => c.id));
+      }
+    }
+  }
+
+  const scopeIds = [...new Set([...unitIds, ...chapterIds])];
+  if (scopeIds.length === 0) return [];
+
+  const conditions = [
+    inArray(membership.orgUnitId, scopeIds),
+    eq(membership.status, "active"),
+  ];
+
+  const q = opts.q?.trim();
+  if (q) {
+    conditions.push(
+      or(ilike(user.name, `%${q}%`), ilike(user.email, `%${q}%`))!,
+    );
+  }
+
+  return db
+    .select({
+      membershipId: membership.id,
+      roleKey: membership.roleKey,
+      memberCode: membership.memberCode,
+      userId: user.id,
+      userName: user.name,
+      userEmail: user.email,
+      orgUnitId: orgUnit.id,
+      orgUnitName: orgUnit.name,
+      orgUnitLevel: orgUnit.level,
+      kindLabel: unitKind.label,
+      parentId: orgUnit.parentId,
+      stateCode: orgUnit.stateCode,
+    })
+    .from(membership)
+    .innerJoin(user, eq(membership.userId, user.id))
+    .innerJoin(orgUnit, eq(membership.orgUnitId, orgUnit.id))
+    .leftJoin(unitKind, eq(orgUnit.unitKindId, unitKind.id))
+    .where(and(...conditions))
+    .orderBy(asc(user.name))
+    .limit(opts.limit ?? 100);
 }
 
 export async function listUnitMembers(orgUnitId: string) {
@@ -222,6 +346,7 @@ export async function getMembershipCardContext(membershipId: string) {
       status: membership.status,
       photoUrl: membership.photoUrl,
       userName: user.name,
+      userImage: user.image,
       userId: user.id,
       unitName: orgUnit.name,
       unitId: orgUnit.id,
@@ -284,19 +409,22 @@ export async function getLatestIdCard(membershipId: string) {
 }
 
 export async function dashboardSummary(userId: string) {
-  const [memberships, applications, leads] = await Promise.all([
-    getUserMemberships(userId),
-    getUserApplications(userId),
-    getActiveMemberships(userId),
-  ]);
+  const [memberships, applications, leads, scoped, pending] = await Promise.all(
+    [
+      getUserMemberships(userId),
+      getUserApplications(userId),
+      getActiveLeads(userId),
+      getScopedOrgRoots(userId),
+      listPendingApplicationsForLead(userId).catch(() => []),
+    ],
+  );
   return {
     memberships,
     applications,
-    isLead: leads.some((m) =>
-      ["national_admin", "state_lead", "city_lead", "unit_lead"].includes(
-        m.roleKey,
-      ),
-    ),
-    isNationalAdmin: leads.some((m) => m.roleKey === "national_admin"),
+    isLead: await hasAnyLeadRole(userId),
+    isNationalAdmin: scoped.isNationalAdmin,
+    scopeRoots: scoped.roots,
+    leads,
+    pendingCount: pending.length,
   };
 }

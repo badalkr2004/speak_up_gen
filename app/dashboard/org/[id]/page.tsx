@@ -5,7 +5,7 @@ import { AssignRoleForm } from "@/app/components/org/assign-role-form";
 import { CreateCityForm } from "@/app/components/org/create-city-form";
 import { CreateUnitForm } from "@/app/components/org/create-unit-form";
 import { requireSession } from "@/lib/auth/session";
-import { canAssignLeadOnUnit, canManageChildren } from "@/lib/org/permissions-org";
+import { can, getAssignableRoles } from "@/lib/org/access";
 import {
   getOrgUnitById,
   listChildUnits,
@@ -13,7 +13,7 @@ import {
   listUnitKinds,
   listUnitMembers,
 } from "@/lib/org/queries";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Chapter",
@@ -28,11 +28,27 @@ async function OrgDetailContent({ params }: { params: Params }) {
   const unit = await getOrgUnitById(id);
   if (!unit) notFound();
 
+  const canView = await can(session.user.id, "view_org", unit.id);
+  if (!canView) {
+    redirect("/dashboard/org");
+  }
+
   const children = await listChildUnits(unit.id);
-  const canManage = await canManageChildren(session.user.id, unit.id);
-  const canAssign = await canAssignLeadOnUnit(session.user.id, unit.id);
+  const canCreateCity =
+    unit.level === "state" &&
+    (await can(session.user.id, "create_city", unit.id));
+  const canCreateUnit =
+    unit.level === "city" &&
+    (await can(session.user.id, "create_unit", unit.id));
+  const canAssign = await can(session.user.id, "assign_roles", unit.id);
+  const assignable = canAssign
+    ? await getAssignableRoles(session.user.id, unit.id)
+    : [];
+
   const members =
-    unit.level === "unit" ? await listUnitMembers(unit.id) : [];
+    unit.level === "unit" || unit.level === "city" || unit.level === "state"
+      ? await listUnitMembers(unit.id)
+      : [];
 
   const cities =
     unit.level === "state" && unit.stateCode
@@ -53,6 +69,14 @@ async function OrgDetailContent({ params }: { params: Params }) {
       {unit.kindLabel ? (
         <p className="mt-2 text-ink-soft">{unit.kindLabel}</p>
       ) : null}
+      <p className="mt-2 text-sm">
+        <Link
+          href={`/dashboard/people?unit=${unit.id}`}
+          className="font-semibold text-leaf underline-offset-2 hover:underline"
+        >
+          Manage people in this scope →
+        </Link>
+      </p>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <section>
@@ -84,14 +108,17 @@ async function OrgDetailContent({ params }: { params: Params }) {
                           {m.memberCode ? ` · ${m.memberCode}` : ""}
                         </p>
                       </div>
-                      {canAssign ? (
+                      {canAssign && assignable.length > 0 ? (
                         <AssignRoleForm
-                          membershipId={m.id}
+                          userId={m.userId}
+                          targetOrgUnitId={unit.id}
+                          sourceMembershipId={m.id}
                           currentRole={m.roleKey}
+                          allowedRoles={assignable}
                         />
                       ) : (
                         <span className="text-xs uppercase tracking-wide text-ink-soft">
-                          {m.roleKey.replace("_", " ")}
+                          {m.roleKey.replaceAll("_", " ")}
                         </span>
                       )}
                     </div>
@@ -100,44 +127,76 @@ async function OrgDetailContent({ params }: { params: Params }) {
               )}
             </ul>
           ) : (
-            <ul className="mt-4 space-y-2">
-              {children.length === 0 ? (
-                <li className="text-sm text-ink-soft">Nothing here yet.</li>
-              ) : (
-                children.map((c) => (
-                  <li key={c.id}>
-                    <Link
-                      href={`/dashboard/org/${c.id}`}
-                      className="block rounded-xl border-2 border-ink bg-paper px-4 py-3 font-medium hover:bg-lime/30"
-                    >
-                      {c.name}
-                      {c.kindLabel ? (
-                        <span className="ml-2 text-xs text-ink-soft">
-                          {c.kindLabel}
+            <>
+              <ul className="mt-4 space-y-2">
+                {children.length === 0 ? (
+                  <li className="text-sm text-ink-soft">Nothing here yet.</li>
+                ) : (
+                  children.map((c) => (
+                    <li key={c.id}>
+                      <Link
+                        href={`/dashboard/org/${c.id}`}
+                        className="block rounded-xl border-2 border-ink bg-paper px-4 py-3 font-medium hover:bg-lime/30"
+                      >
+                        {c.name}
+                        {c.kindLabel ? (
+                          <span className="ml-2 text-xs text-ink-soft">
+                            {c.kindLabel}
+                          </span>
+                        ) : null}
+                      </Link>
+                    </li>
+                  ))
+                )}
+              </ul>
+
+              {members.length > 0 ? (
+                <div className="mt-8">
+                  <h3 className="font-semibold">Chapter leads & staff</h3>
+                  <ul className="mt-3 space-y-2">
+                    {members.map((m) => (
+                      <li
+                        key={m.id}
+                        className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-ink/10 px-3 py-2 text-sm"
+                      >
+                        <span>
+                          {m.userName}{" "}
+                          <span className="text-ink-soft">
+                            · {m.roleKey.replaceAll("_", " ")}
+                          </span>
                         </span>
-                      ) : null}
-                    </Link>
-                  </li>
-                ))
-              )}
-            </ul>
+                        {canAssign && assignable.length > 0 ? (
+                          <AssignRoleForm
+                            userId={m.userId}
+                            targetOrgUnitId={unit.id}
+                            sourceMembershipId={m.id}
+                            currentRole={m.roleKey}
+                            allowedRoles={assignable}
+                          />
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </>
           )}
         </section>
 
         <aside className="space-y-4">
-          {canManage && unit.level === "state" ? (
+          {canCreateCity ? (
             <CreateCityForm parentStateUnitId={unit.id} cities={cities} />
           ) : null}
-          {canManage && unit.level === "city" ? (
+          {canCreateUnit ? (
             <CreateUnitForm
               parentCityUnitId={unit.id}
               kinds={kinds.map((k) => ({ id: k.id, label: k.label }))}
             />
           ) : null}
-          {!canManage ? (
+          {!canCreateCity && !canCreateUnit ? (
             <p className="text-sm text-ink-soft">
-              You can view this chapter. Creating children requires lead access
-              on the parent level.
+              Creating children requires lead access on this chapter. Role
+              changes belong on People for correct city/state attachment.
             </p>
           ) : null}
         </aside>

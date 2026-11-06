@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { ApplyForm } from "@/app/components/org/apply-form";
 import { AuthShell } from "@/app/components/auth/auth-shell";
 import { getSession } from "@/lib/auth/session";
-import { listJoinableUnits } from "@/lib/org/queries";
-import { redirect } from "next/navigation";
+import {
+  listCitiesWithChapters,
+  listStatesWithChapters,
+} from "@/lib/org/queries";
 
 export const metadata: Metadata = {
   title: "Apply to join",
@@ -18,18 +21,29 @@ async function ApplyContent() {
     redirect("/sign-in?next=/apply");
   }
 
-  const units = await listJoinableUnits().catch(() => []);
+  const states = await listStatesWithChapters().catch(() => []);
+  const citiesByState: Record<
+    string,
+    { cityId: string; cityName: string; chapterId: string }[]
+  > = {};
+
+  await Promise.all(
+    states.map(async (s) => {
+      citiesByState[s.stateCode] = await listCitiesWithChapters(s.stateCode).catch(
+        () => [],
+      );
+    }),
+  );
 
   return (
     <ApplyForm
       defaultName={session.user.name}
-      units={units.map((u) => ({
-        id: u.id,
-        name: u.name,
-        kindLabel: u.kindLabel,
-        cityName: u.cityName,
-        stateName: u.stateName,
+      states={states.map((s) => ({
+        stateCode: s.stateCode,
+        stateName: s.stateName,
+        chapterId: s.chapterId,
       }))}
+      initialCitiesByState={citiesByState}
     />
   );
 }
@@ -38,13 +52,16 @@ export default function ApplyPage() {
   return (
     <AuthShell
       title="Apply to a team."
-      subtitle="Pick a local Speak Up Gen team. Your local lead reviews and approves membership."
+      subtitle="Choose your state and city, then search for a local Speak Up Gen team. Your local lead reviews membership."
     >
-      <Suspense fallback={<p className="text-sm text-ink-soft">Loading teams…</p>}>
+      <Suspense fallback={<p className="text-sm text-ink-soft">Loading…</p>}>
         <ApplyContent />
       </Suspense>
       <p className="mt-6 text-center text-sm text-ink-soft">
-        <Link href="/dashboard" className="font-semibold text-leaf underline-offset-2 hover:underline">
+        <Link
+          href="/dashboard"
+          className="font-semibold text-leaf underline-offset-2 hover:underline"
+        >
           Back to dashboard
         </Link>
       </p>

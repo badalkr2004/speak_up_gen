@@ -16,6 +16,9 @@ async function DashboardContent() {
     applications: [],
     isLead: false,
     isNationalAdmin: false,
+    scopeRoots: [] as { id: string; name: string; level: string }[],
+    leads: [],
+    pendingCount: 0,
   }));
 
   const active = summary.memberships.filter((m) => m.status === "active");
@@ -27,8 +30,8 @@ async function DashboardContent() {
         Hey, {session.user.name.split(" ")[0]}.
       </h1>
       <p className="mt-3 max-w-xl text-ink-soft">
-        Apply to a local team, track approvals, and open your member ID when
-        you are active.
+        Apply by location, track approvals, and manage your territory if you
+        lead a chapter.
       </p>
 
       <div className="mt-8 flex flex-wrap gap-3">
@@ -36,16 +39,49 @@ async function DashboardContent() {
           Apply to a team
         </Link>
         {summary.isLead ? (
-          <Link href="/dashboard/approvals" className="btn border-2 border-ink bg-sky">
-            Review applications
+          <Link
+            href="/dashboard/approvals"
+            className="btn border-2 border-ink bg-sky"
+          >
+            Approvals
+            {summary.pendingCount > 0 ? ` (${summary.pendingCount})` : ""}
           </Link>
         ) : null}
         {summary.isLead ? (
-          <Link href="/dashboard/org" className="btn border-2 border-ink bg-lime">
-            Manage organisation
+          <Link
+            href="/dashboard/org"
+            className="btn border-2 border-ink bg-lime"
+          >
+            Organisation
+          </Link>
+        ) : null}
+        {summary.isLead ? (
+          <Link
+            href="/dashboard/people"
+            className="btn border-2 border-ink bg-paper"
+          >
+            People
           </Link>
         ) : null}
       </div>
+
+      {summary.scopeRoots.length > 0 ? (
+        <section className="mt-8 rounded-[1.25rem] border-2 border-ink bg-lime/25 p-5">
+          <h2 className="font-semibold">Your management scope</h2>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {summary.scopeRoots.map((r) => (
+              <li key={r.id}>
+                <Link
+                  href={`/dashboard/org/${r.id}`}
+                  className="inline-block rounded-full border-2 border-ink bg-paper px-3 py-1 text-sm font-medium hover:bg-lime/50"
+                >
+                  {r.name} · {r.level}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <div className="mt-10 grid gap-4 lg:grid-cols-2">
         <section className="rounded-[1.25rem] border-2 border-ink bg-paper p-5">
@@ -57,11 +93,15 @@ async function DashboardContent() {
           ) : (
             <ul className="mt-3 space-y-3">
               {active.map((m) => (
-                <li key={m.id} className="rounded-xl bg-lime/30 px-3 py-3 text-sm">
+                <li
+                  key={m.id}
+                  className="rounded-xl bg-lime/30 px-3 py-3 text-sm"
+                >
                   <p className="font-medium">{m.unitName}</p>
                   <p className="text-ink-soft">
                     {m.roleKey.replaceAll("_", " ")}
                     {m.memberCode ? ` · ${m.memberCode}` : ""}
+                    {m.unitLevel ? ` · ${m.unitLevel}` : ""}
                   </p>
                   {m.memberCode ? (
                     <Link
@@ -104,7 +144,9 @@ export default function DashboardPage() {
   return (
     <Suspense
       fallback={
-        <div className="container-x py-10 text-ink-soft">Loading your space…</div>
+        <div className="container-x py-10 text-ink-soft">
+          Loading your space…
+        </div>
       }
     >
       <DashboardContent />
