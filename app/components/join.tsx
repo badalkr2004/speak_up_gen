@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { Arrow } from "./icons";
 import logoBadge from "../../public/brand/logo-badge.png";
-import { INSTAGRAM_HANDLE, INSTAGRAM_URL, WHATSAPP_URL } from "../lib/content";
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from "../lib/content";
 
 type Vars = React.CSSProperties & Record<`--${string}`, string | number>;
 
@@ -28,30 +28,28 @@ export function Join() {
             <span className="text-leaf">Bigger change.</span>
           </h2>
           <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl" data-reveal style={{ "--d": 2 } as Vars}>
-            If you believe that even a small action can create a bigger change, come be a part of Speak Up Gen. Two
-            doors in — pick either, or both. 💚
+            If you believe that even a small action can create a bigger change, come be a part of Speak Up Gen. Apply
+            for official membership, or jump into the community chat. 💚
           </p>
         </div>
 
         <div className="mt-14 grid gap-6 sm:mt-20 md:grid-cols-2 md:gap-8">
           <div data-reveal className="flex">
           <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/apply"
             className="tilt-card group relative flex w-full flex-col overflow-hidden rounded-[1.75rem] border-2 border-ink bg-[#e7f3d9] p-6 shadow-[8px_8px_0_#171713] sm:p-8"
             style={{ transform: "rotate(-1.2deg)" }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] wide">WhatsApp group</span>
+              <span className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] wide">Official membership</span>
               <span className="flex items-center gap-1.5 text-xs font-medium text-leaf">
-                <span className="h-2 w-2 rounded-full bg-leaf" /> active now
+                <span className="h-2 w-2 rounded-full bg-leaf" /> apply now
               </span>
             </div>
 
             <div className="mt-6 flex flex-1 flex-col gap-3 rounded-2xl bg-paper/70 p-4 text-[0.95rem] sm:p-5" aria-hidden="true">
               <div className="bubble max-w-[85%] self-end rounded-2xl rounded-br-md bg-[#cfeeb5] px-4 py-2.5" style={{ "--at": "0.3s" } as Vars}>
-                hey! is this where I join speak up gen? 👀
+                can I get an official member ID?
               </div>
               <div className="typing flex w-fit items-center gap-1 rounded-2xl rounded-bl-md bg-paper px-4 py-3.5 text-ink-soft">
                 <i />
@@ -60,15 +58,15 @@ export function Join() {
               </div>
               <div className="bubble flex max-w-[85%] items-start gap-2.5 rounded-2xl rounded-bl-md bg-paper px-4 py-2.5" style={{ "--at": "2.4s" } as Vars}>
                 <Image src={logoBadge} alt="" sizes="1.75rem" className="h-7 w-7 shrink-0 rounded-full" />
-                <span>yesss — welcome in 💚 say hi, tell us what you care about. next drive details are pinned!</span>
+                <span>yes — apply to a local team. your lead approves, then your ID card unlocks 💚</span>
               </div>
             </div>
 
             <div className="mt-6 flex items-end justify-between gap-4">
               <p className="display text-4xl sm:text-5xl">
-                Join the
+                Apply to
                 <br />
-                group chat
+                a local team
               </p>
               <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-ink text-paper transition-transform duration-500 ease-(--ease-spring) group-hover:-rotate-45 group-hover:scale-110">
                 <Arrow className="h-6 w-6" />

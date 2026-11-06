@@ -1,93 +1,112 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { SignOutButton } from "@/app/components/auth/sign-out-button";
-import { listLeadMemberships } from "@/lib/auth/permissions";
 import { requireSession } from "@/lib/auth/session";
+import { dashboardSummary } from "@/lib/org/queries";
 
 export const metadata: Metadata = {
   title: "Dashboard",
   robots: { index: false, follow: false },
 };
 
-function DashboardFallback() {
-  return (
-    <main className="min-h-dvh bg-paper">
-      <div className="container-x py-10 sm:py-14">
-        <p className="eyebrow text-leaf">Member dashboard</p>
-        <p className="mt-4 text-ink-soft">Loading your space…</p>
-      </div>
-    </main>
-  );
-}
-
 async function DashboardContent() {
   const session = await requireSession();
-  const leadMemberships = await listLeadMemberships(session.user.id).catch(
-    () => [],
-  );
+  const summary = await dashboardSummary(session.user.id).catch(() => ({
+    memberships: [],
+    applications: [],
+    isLead: false,
+    isNationalAdmin: false,
+  }));
+
+  const active = summary.memberships.filter((m) => m.status === "active");
 
   return (
-    <main className="min-h-dvh bg-paper">
-      <div className="container-x py-10 sm:py-14">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="eyebrow text-leaf">Member dashboard</p>
-            <h1 className="display mt-3 text-[clamp(2.2rem,7vw,3.4rem)]">
-              Hey, {session.user.name.split(" ")[0]}.
-            </h1>
-            <p className="mt-3 max-w-xl text-ink-soft">
-              You are signed in. Membership applications, local team tools, and ID
-              cards land here as we roll them out.
-            </p>
-          </div>
-          <SignOutButton />
-        </div>
+    <div className="container-x py-10 sm:py-12">
+      <p className="eyebrow text-leaf">Member dashboard</p>
+      <h1 className="display mt-3 text-[clamp(2.2rem,7vw,3.4rem)]">
+        Hey, {session.user.name.split(" ")[0]}.
+      </h1>
+      <p className="mt-3 max-w-xl text-ink-soft">
+        Apply to a local team, track approvals, and open your member ID when
+        you are active.
+      </p>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          <section className="rounded-[1.25rem] border-2 border-ink bg-lime/40 p-5">
-            <h2 className="font-semibold">Your account</h2>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div>
-                <dt className="text-ink-soft">Name</dt>
-                <dd>{session.user.name}</dd>
-              </div>
-              <div>
-                <dt className="text-ink-soft">Email</dt>
-                <dd>{session.user.email}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <section className="rounded-[1.25rem] border-2 border-ink bg-sky/50 p-5">
-            <h2 className="font-semibold">Next steps</h2>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-ink-soft">
-              <li>Apply to a local team (coming soon on /apply).</li>
-              <li>Local leads approve members for their unit.</li>
-              <li>Approved members get a verifiable ID card.</li>
-            </ul>
-            {leadMemberships.length > 0 ? (
-              <p className="mt-4 text-sm font-medium text-leaf">
-                You have lead access on {leadMemberships.length} unit
-                {leadMemberships.length === 1 ? "" : "s"}.
-              </p>
-            ) : null}
-          </section>
-        </div>
-
-        <p className="mt-10 text-sm text-ink-soft">
-          <Link href="/" className="font-semibold text-leaf underline-offset-2 hover:underline">
-            ← Back to Speak Up Gen
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link href="/apply" className="btn btn-ink">
+          Apply to a team
+        </Link>
+        {summary.isLead ? (
+          <Link href="/dashboard/approvals" className="btn border-2 border-ink bg-sky">
+            Review applications
           </Link>
-        </p>
+        ) : null}
+        {summary.isLead ? (
+          <Link href="/dashboard/org" className="btn border-2 border-ink bg-lime">
+            Manage organisation
+          </Link>
+        ) : null}
       </div>
-    </main>
+
+      <div className="mt-10 grid gap-4 lg:grid-cols-2">
+        <section className="rounded-[1.25rem] border-2 border-ink bg-paper p-5">
+          <h2 className="font-semibold">Memberships</h2>
+          {active.length === 0 ? (
+            <p className="mt-3 text-sm text-ink-soft">
+              No active memberships yet. Submit an application to get started.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-3">
+              {active.map((m) => (
+                <li key={m.id} className="rounded-xl bg-lime/30 px-3 py-3 text-sm">
+                  <p className="font-medium">{m.unitName}</p>
+                  <p className="text-ink-soft">
+                    {m.roleKey.replaceAll("_", " ")}
+                    {m.memberCode ? ` · ${m.memberCode}` : ""}
+                  </p>
+                  {m.memberCode ? (
+                    <Link
+                      href={`/dashboard/id-card/${m.id}`}
+                      className="mt-2 inline-block font-semibold text-leaf underline-offset-2 hover:underline"
+                    >
+                      View ID card
+                    </Link>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-[1.25rem] border-2 border-ink bg-sky/40 p-5">
+          <h2 className="font-semibold">Applications</h2>
+          {summary.applications.length === 0 ? (
+            <p className="mt-3 text-sm text-ink-soft">No applications yet.</p>
+          ) : (
+            <ul className="mt-3 space-y-3 text-sm">
+              {summary.applications.map((a) => (
+                <li key={a.id} className="rounded-xl bg-paper/80 px-3 py-3">
+                  <p className="font-medium">{a.unitName}</p>
+                  <p className="capitalize text-ink-soft">{a.status}</p>
+                  {a.reviewNote ? (
+                    <p className="mt-1 text-ink-soft">{a.reviewNote}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </div>
   );
 }
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<DashboardFallback />}>
+    <Suspense
+      fallback={
+        <div className="container-x py-10 text-ink-soft">Loading your space…</div>
+      }
+    >
       <DashboardContent />
     </Suspense>
   );

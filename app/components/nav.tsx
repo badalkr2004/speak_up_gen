@@ -88,7 +88,7 @@ export function Nav() {
           >
             Sign in
           </Link>
-          <Link href="/sign-up" className="btn btn-ink !px-4 !py-2.5 text-sm">
+          <Link href="/apply" className="btn btn-ink !px-4 !py-2.5 text-sm">
             <span className="h-2 w-2 rounded-full bg-lime" />
             Join us
           </Link>
